@@ -54,7 +54,6 @@ export function registerSubtreeManager(cli: CAC, baseLogger: Logger): void {
 export class SubtreeManager {
   private readonly logger: Logger;
   private readonly name: string;
-  private readonly dir: string;
   private readonly remote: string;
   private readonly remoteBranch: string;
   private readonly local?: string;
@@ -70,7 +69,6 @@ export class SubtreeManager {
   ) {
     this.logger = logger.extend("SubtreeManager");
     this.name = options.name;
-    this.dir = `deps/${this.name}`;
     this.remote = options.remote;
     this.remoteBranch = options.remoteBranch;
     this.local = options.local;
@@ -79,8 +77,8 @@ export class SubtreeManager {
   async init() {
     const logger = this.logger.extend("init");
     logger.info({ emoji: "🔧" })`正在初始化 Subtree ${this.name}...`;
-    if (existsSync(this.dir)) {
-      logger.warn()`Subtree 目錄 ${this.dir} 已存在，跳過初始化`;
+    if (existsSync(this.name)) {
+      logger.warn()`Subtree 目錄 ${this.name} 已存在，跳過初始化`;
       return;
     }
 
@@ -97,7 +95,7 @@ export class SubtreeManager {
     logger.info({
       emoji: "🌲",
     })`提交為 ${this.formatCommitHash(commit)} 開始 subtree add`;
-    await $`git subtree add --prefix=${this.dir} ${this.remote} ${this.remoteBranch} --squash`;
+    await $`git subtree add --prefix=${this.name} ${this.remote} ${this.remoteBranch} --squash`;
     const tag = this.formatTag(commit);
     await $`git tag ${tag}`;
     logger.info({ emoji: "🏷️" })`已建立 tag: ${tag}`;
@@ -110,7 +108,7 @@ export class SubtreeManager {
 
   formatTag(commit: string) {
     const commitShort = this.formatCommitHash(commit);
-    return `${this.dir}@${commitShort}`;
+    return `${this.name}@${commitShort}`;
   }
 
   async findRemoteCommit(): Promise<Result<string>> {
@@ -131,8 +129,8 @@ export class SubtreeManager {
       emoji: "🔄",
     });
     logger.info()`正在更新 Subtree ${this.name}...`;
-    if (!existsSync(this.dir)) {
-      logger.error(`Subtree 目錄 ${this.dir} 不存在，請先初始化`);
+    if (!existsSync(this.name)) {
+      logger.error(`Subtree 目錄 ${this.name} 不存在，請先初始化`);
       return;
     }
 
@@ -149,7 +147,7 @@ export class SubtreeManager {
     const before = await this.getCurrentCommit();
 
     logger.info()`提交為 ${this.formatCommitHash(upstreamCommit)} 開始 subtree pull`;
-    await $`git subtree pull --prefix=${this.dir} ${this.remote} ${this.remoteBranch} --squash`;
+    await $`git subtree pull --prefix=${this.name} ${this.remote} ${this.remoteBranch} --squash`;
 
     const after = await this.getCurrentCommit();
     if (before === after) {
@@ -171,8 +169,8 @@ export class SubtreeManager {
       emoji: "🚀",
     });
     logger.info()`正在推送 Subtree ${this.name}...`;
-    if (!existsSync(this.dir)) {
-      logger.error(`Subtree 目錄 ${this.dir} 不存在，請先初始化`);
+    if (!existsSync(this.name)) {
+      logger.error(`Subtree 目錄 ${this.name} 不存在，請先初始化`);
       return;
     }
     if (!this.local) {
@@ -183,7 +181,8 @@ export class SubtreeManager {
     const branch = `${this.local}/${format(new Date(), "yyyyMMdd-HHmmss")}`;
 
     logger.info({ emoji: "🌿" })`開始拆出 subtree 分支`;
-    const result = await $`git subtree split --prefix=${this.dir} -b ${branch}`;
+    const result =
+      await $`git subtree split --prefix=${this.name} -b ${branch}`;
     const newCommit = result.stdout.toString().trim();
 
     logger.info({
