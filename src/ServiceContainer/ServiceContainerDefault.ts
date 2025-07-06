@@ -1,6 +1,10 @@
 import type { Logger } from "~shared/Logger";
+import {
+  type Disposeable,
+  dispose,
+  isDisposeable,
+} from "~shared/utils/Disposeable";
 import { type Result, err, ok } from "~shared/utils/Result";
-import type { MaybePromise } from "~shared/utils/TypeHelper";
 
 import type {
   BuildError,
@@ -10,7 +14,7 @@ import type {
 } from "./ServiceContainer";
 
 type DisposableEntry = {
-  [Symbol.asyncDispose](): MaybePromise<void>;
+  value: Disposeable;
   key: string;
 };
 
@@ -43,26 +47,18 @@ export class ServiceContainerDefault<TService extends ServiceMap>
     value: TService[K]
   ): void {
     if (this.built) {
-      this.logger.error()`❌ 嘗試在建構後設定服務 '${String(key)}'`;
-      throw new Error("❌ Cannot set service after build");
+      this.logger.error()`嘗試在建構後設定服務 '${String(key)}'`;
+      throw new Error("Cannot set service after build");
     }
     if (this.services.has(key)) {
-      this.logger.error()`❌ 嘗試重複註冊服務 '${String(key)}'`;
-      throw new Error(`❌ Service '${String(key)}' already registered`);
+      this.logger.error()`嘗試重複註冊服務 '${String(key)}'`;
+      throw new Error(`Service '${String(key)}' already registered`);
     }
     this.services.set(key, value);
-    let disposeMethod: (() => MaybePromise<void>) | undefined = undefined;
-    if (hasSymbolAsyncDispose(value)) {
-      disposeMethod = value[Symbol.asyncDispose];
-    } else if (hasSymbolDispose(value)) {
-      disposeMethod = value[Symbol.dispose];
-    } else if (hasDisposeMethod(value)) {
-      disposeMethod = value.dispose;
-    }
-    if (disposeMethod) {
+    if (isDisposeable(value)) {
       this.logger.info()`註冊的服務 '${String(key)}' 支援釋放資源`;
       this.disposables.push({
-        [Symbol.asyncDispose]: () => disposeMethod.call(value),
+        value,
         key: String(key),
       });
     }
@@ -95,14 +91,14 @@ export class ServiceContainerDefault<TService extends ServiceMap>
     factory?: Factory<TService, Deps, R>
   ): ServiceContainer<TService & Record<K, R>, Omit<TService, K>> {
     if (this.built) {
-      this.logger.error()`❌ 嘗試在建構後設定服務 '${String(key)}'`;
-      throw new Error("❌ Cannot register after build");
+      this.logger.error()`嘗試在建構後設定服務 '${String(key)}'`;
+      throw new Error("Cannot register after build");
     }
 
     if (factory) {
       if (this.factories.has(key)) {
-        this.logger.error()`❌ 嘗試重複註冊工廠 '${String(key)}'`;
-        throw new Error(`❌ Factory for '${String(key)}' already registered`);
+        this.logger.error()`嘗試重複註冊工廠 '${String(key)}'`;
+        throw new Error(`Factory for '${String(key)}' already registered`);
       }
       const deps = depsOrInstance as Deps;
       this.factories.set(key, {
@@ -120,12 +116,12 @@ export class ServiceContainerDefault<TService extends ServiceMap>
   // === 解析已完成建構的服務 ===
   resolve<K extends keyof TService>(key: K): TService[K] {
     if (!this.built) {
-      this.logger.error()`❌ 嘗試在未建構的容器中解析服務 '${String(key)}'`;
-      throw new Error(`❌ Container has not been built`);
+      this.logger.error()`嘗試在未建構的容器中解析服務 '${String(key)}'`;
+      throw new Error(`Container has not been built`);
     }
     if (!this.services.has(key)) {
-      this.logger.error()`❌ 服務 '${String(key)}' 未註冊`;
-      throw new Error(`❌ Service '${String(key)}' not found`);
+      this.logger.error()`服務 '${String(key)}' 未註冊`;
+      throw new Error(`Service '${String(key)}' not found`);
     }
     return this.services.get(key) as TService[K];
   }
@@ -141,7 +137,7 @@ export class ServiceContainerDefault<TService extends ServiceMap>
 
       if (stack.includes(key)) {
         const cycleStart = stack.indexOf(key);
-        this.logger.error()`❌ 依賴循環檢測到: ${stack.slice(cycleStart).map(String).join(" -> ")}`;
+        this.logger.error()`依賴循環檢測到: ${stack.slice(cycleStart).map(String).join(" -> ")}`;
         return {
           type: "DEPENDENCY_CHAIN_ERROR",
           path: stack.slice(cycleStart).map(String),
@@ -150,7 +146,7 @@ export class ServiceContainerDefault<TService extends ServiceMap>
 
       const factoryEntry = this.factories.get(key);
       if (!factoryEntry) {
-        this.logger.error()`❌ 無法解析服務 '${String(key)}'，未找到實例或工廠`;
+        this.logger.error()`無法解析服務 '${String(key)}'，未找到實例或工廠`;
         return {
           type: "UNRESOLVABLE",
           key: String(key),
@@ -175,7 +171,7 @@ export class ServiceContainerDefault<TService extends ServiceMap>
       } catch (error) {
         this.logger.error({
           error,
-        })`❌ 解析服務 '${String(key)}' 時發生錯誤: ${error instanceof Error ? error.message : String(error)}`;
+        })`解析服務 '${String(key)}' 時發生錯誤`;
         return {
           type: "UNRESOLVABLE",
           key: String(key),
@@ -199,19 +195,36 @@ export class ServiceContainerDefault<TService extends ServiceMap>
   }
 
   async [Symbol.asyncDispose](): Promise<void> {
+    const logger = this.logger.extend("dispose");
+    logger.info({
+      emoji: "🗑️",
+    })`正在釋放服務容器資源`;
+    const disposeFailures: string[] = [];
     if (this.built) {
       const reverseDisposables = [...this.disposables].reverse();
       for (const entry of reverseDisposables) {
+        logger.info()`正在釋放服務 '${entry.key}'`;
         try {
-          await entry[Symbol.asyncDispose]();
+          await dispose(entry.value);
         } catch (error) {
-          console.error(`Error disposing service '${entry.key}':`, error);
+          this.logger.error({
+            error,
+          })`釋放服務 '${entry.key}' 時發生錯誤`;
+          disposeFailures.push(entry.key);
         }
       }
       this.disposables.length = 0; // 清空 disposables
     }
     this.services.clear();
     this.factories.clear();
+    if (disposeFailures.length > 0) {
+      logger.warn({
+        disposeFailures,
+      })`部分服務釋放失敗: ${disposeFailures.join(", ")}`;
+    } else {
+      logger.info()`所有服務已成功釋放`;
+    }
+    logger.info()`釋放程序結束`;
   }
 
   async dispose(): Promise<void> {
@@ -226,38 +239,5 @@ function isBuildError(value: unknown): value is BuildError {
     "type" in value &&
     (value["type"] === "DEPENDENCY_CHAIN_ERROR" ||
       value["type"] === "UNRESOLVABLE")
-  );
-}
-
-function hasSymbolAsyncDispose(
-  value: unknown
-): value is { [Symbol.asyncDispose]: () => MaybePromise<void> } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Symbol.asyncDispose in value &&
-    typeof value[Symbol.asyncDispose] === "function"
-  );
-}
-
-function hasSymbolDispose(
-  value: unknown
-): value is { [Symbol.dispose]: () => MaybePromise<void> } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Symbol.dispose in value &&
-    typeof value[Symbol.dispose] === "function"
-  );
-}
-
-function hasDisposeMethod(
-  value: unknown
-): value is { dispose: () => MaybePromise<void> } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "dispose" in value &&
-    typeof value["dispose"] === "function"
   );
 }
