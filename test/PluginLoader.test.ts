@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { PluginManagerDefault } from "~shared/PluginManager";
+import { PluginLoader } from "~shared/PluginLoader";
 import { StaticResolver } from "~shared/ServiceContainer";
 import { buildTestLogger } from "~shared/testkit/TestLogger";
 
-describe("PluginManagerDefault", () => {
+describe("PluginLoader", () => {
   test("可以載入插件與釋放插件", async () => {
     const logger = buildTestLogger();
     const message: string[] = [];
@@ -14,14 +14,15 @@ describe("PluginManagerDefault", () => {
       },
     });
     const currentDir = import.meta.dir;
-    const manager = new PluginManagerDefault<{
+    const manager = new PluginLoader<{
       Callback: (message: string) => void;
     }>(logger, resolver, {
       pluginDir: `${currentDir}/fixture/plugins`,
     });
-    await manager.load("test");
-    expect(message).toContain("Sample plugin initialized");
+    await manager.load();
+    expect(message).toContain("Object plugin initialized");
+    expect(message).toContain("Class plugin initialized");
     await manager.dispose();
-    expect(message).toContain("Sample plugin disposed");
+    expect(message).toContain("Class plugin disposed");
   });
 });
