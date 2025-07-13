@@ -1,16 +1,16 @@
 import type { MaybePromise } from "~shared/utils/TypeHelper";
 
-export interface EventBus<TEvents extends Events> {
-  emit<TKey extends keyof TEvents>(
-    name: TKey,
-    payload: TEvents[TKey]
-  ): Promise<void>;
+export type EventMap = Record<string, EventPayload>;
+export type EventPayload = Record<string, unknown>;
 
-  subscribe<TKey extends keyof TEvents>(
+export interface EventBus<TEventMap extends EventMap> {
+  emit<TKey extends keyof TEventMap>(
     name: TKey,
-    handler: (payload: TEvents[TKey]) => MaybePromise<void>
+    payload: TEventMap[TKey]
+  ): Promise<void>;
+  
+  subscribe<TKey extends keyof TEventMap>(
+    name: TKey,
+    handler: (payload: TEventMap[TKey]) => MaybePromise<void>
   ): Promise<void>;
 }
-
-export type Events = Record<string, EventPayload>;
-export type EventPayload = Record<string, unknown>;

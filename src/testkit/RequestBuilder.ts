@@ -89,7 +89,7 @@ export function httpPost<T>(
   type: "JSON",
   body: T
 ): RequestBuilder;
-export function httpPost<T>(path: string, body: T): RequestBuilder;
+export function httpPost<T>(path: string, body?: T): RequestBuilder;
 export function httpPost(
   path: string,
   arg1: unknown,
@@ -116,6 +116,10 @@ export function httpPost(
       .setMethod("POST")
       .withBody(JSON.stringify(arg2))
       .withContentType("application/json");
+  }
+
+  if (arg1 === undefined) {
+    return new RequestBuilder(path).setMethod("POST");
   }
 
   return new RequestBuilder(path)

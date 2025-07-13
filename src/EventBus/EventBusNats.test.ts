@@ -10,7 +10,7 @@ import { buildTestLogger } from "~shared/testkit/TestLogger";
 import { EventBusNats } from "./EventBusNats";
 import { NatsConnectionManager } from "./NatsConnectionManager";
 
-type TestEvents = {
+type TestEventMap = {
   "demo.hello": { message: string };
   "demo.number": { value: number };
 };
@@ -34,7 +34,7 @@ describe.skipIf(TEST_SKIP_EVENT_BUS_TEST)("EventBusNats", () => {
       moduleId: "test-module",
     });
 
-    const eventBus = new EventBusNats<TestEvents>(manager, logger);
+    const eventBus = new EventBusNats<TestEventMap>(manager, logger);
 
     return {
       manager,

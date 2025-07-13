@@ -6,7 +6,7 @@ import { AsyncLock } from "~shared/utils/AsyncLock";
 import { isErr, tryCatch } from "~shared/utils/Result";
 import type { MaybePromise } from "~shared/utils/TypeHelper";
 
-import type { EventBus, Events } from "./EventBus";
+import type { EventBus, EventMap } from "./EventBus";
 import type { NatsConnectionManager } from "./NatsConnectionManager";
 
 const decoder = new TextDecoder("utf-8");
@@ -30,9 +30,11 @@ export type Envelope = typeof envelopeSchema.static;
  *
  * 若需實作任務型派工（需確保任務完成才 ack），請改用工作佇列類型 EventBus 實作。
  */
-export class EventBusNats<TEvents extends Events> implements EventBus<TEvents> {
+export class EventBusNats<TEventMap extends EventMap>
+  implements EventBus<TEventMap>
+{
   private readonly handlers = new Map<
-    keyof TEvents,
+    keyof TEventMap,
     Set<(payload: any) => MaybePromise<void>>
   >();
 
@@ -47,9 +49,9 @@ export class EventBusNats<TEvents extends Events> implements EventBus<TEvents> {
     this.logger = baseLogger.extend("EventBusNats");
   }
 
-  async emit<TKey extends keyof TEvents>(
+  async emit<TKey extends keyof TEventMap>(
     name: TKey,
-    payload: TEvents[TKey]
+    payload: TEventMap[TKey]
   ): Promise<void> {
     const envelope: Envelope = {
       event: name as string,
@@ -61,9 +63,9 @@ export class EventBusNats<TEvents extends Events> implements EventBus<TEvents> {
     this.logger.debug({ event: name as string })`已發送事件`;
   }
 
-  async subscribe<TKey extends keyof TEvents>(
+  async subscribe<TKey extends keyof TEventMap>(
     name: TKey,
-    handler: (payload: TEvents[TKey]) => MaybePromise<void>
+    handler: (payload: TEventMap[TKey]) => MaybePromise<void>
   ): Promise<void> {
     let set = this.handlers.get(name);
     if (!set) {

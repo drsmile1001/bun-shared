@@ -8,14 +8,14 @@ import { isErr, tryCatchAsync } from "~shared/utils/Result";
 
 import { type Plugin, pluginSchema } from "./Plugin";
 
-export class PluginLoader<TServices extends ServiceMap> {
-  private readonly plugins: Plugin<TServices>[] = [];
+export class PluginLoader<TServiceMap extends ServiceMap> {
+  private readonly plugins: Plugin<TServiceMap>[] = [];
   private readonly logger: Logger;
   private readonly pluginDir: string;
-  private readonly resolver: ServiceResolver<TServices>;
+  private readonly resolver: ServiceResolver<TServiceMap>;
   constructor(
     logger: Logger,
-    resolver: ServiceResolver<TServices>,
+    resolver: ServiceResolver<TServiceMap>,
     options: { pluginDir: string }
   ) {
     this.logger = logger.extend("PluginLoader", {
@@ -57,7 +57,7 @@ export class PluginLoader<TServices extends ServiceMap> {
           })`載入檔案 ${fileName} 時發生錯誤`;
           continue;
         }
-        const plugin = importResult.value.default as Plugin<TServices>;
+        const plugin = importResult.value.default as Plugin<TServiceMap>;
         if (!Value.Check(pluginSchema, plugin)) {
           fileLogger.error()`檔案 ${fileName} 的結構不符合預期，跳過載入`;
           continue;

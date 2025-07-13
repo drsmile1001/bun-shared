@@ -5,18 +5,18 @@ import type { ServiceMap, ServiceResolver } from "~shared/ServiceContainer";
 import { type Result } from "~shared/utils/Result";
 import type { MaybePromise } from "~shared/utils/TypeHelper";
 
-export type Plugin<TServices extends ServiceMap = {}> = {
+export type Plugin<TServiceMap extends ServiceMap = {}> = {
   name: string;
   init: (
     logger: Logger,
-    resolver: ServiceResolver<TServices>
+    resolver: ServiceResolver<TServiceMap>
   ) => MaybePromise<Result<void, "SKIP" | "ERROR">>;
   dispose?: () => MaybePromise<void>;
 };
 
-export function definePlugin<TServices extends ServiceMap = {}>(
-  plugin: Plugin<TServices>
-): Plugin<TServices> {
+export function definePlugin<TServiceMap extends ServiceMap = {}>(
+  plugin: Plugin<TServiceMap>
+): Plugin<TServiceMap> {
   return plugin;
 }
 
