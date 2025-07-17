@@ -45,11 +45,30 @@ describe("StructuredInterpreterDefault", () => {
     expect(resultZ.value).toBeNull(); // 未定義的變數返回 null
   });
 
-  test("可以設置變數值", async () => {
+  test("可以使用字面值設置變數值", async () => {
+    const interpreter = new StructuredInterpreterDefault();
+    const ctx: ExecutionContext = { variables: {} };
+    const setResult = await interpreter.interpret({ set: "x", value: 42 }, ctx);
+    expectOk(setResult);
+    expect(setResult.value).toBe(42);
+    expect(ctx.variables!.x).toBe(42);
+
+    const getResult = await interpreter.interpret({ get: "x" }, ctx);
+    expectOk(getResult);
+    expect(getResult.value).toBe(42);
+  });
+
+  test("可以使用表達式設置變數值", async () => {
     const interpreter = new StructuredInterpreterDefault();
     const ctx: ExecutionContext = { variables: {} };
     const setResult = await interpreter.interpret(
-      { set: "x", value: { value: 42 } },
+      {
+        set: "x",
+        expr: {
+          op: "add",
+          args: [{ value: 20 }, { value: 22 }],
+        },
+      },
       ctx
     );
     expectOk(setResult);
@@ -340,9 +359,9 @@ describe("StructuredInterpreterDefault", () => {
     const ctx: ExecutionContext = { variables: {} };
     const blockResult = await interpreter.interpret(
       {
-        children: [
-          { set: "x", value: { value: 10 } },
-          { set: "y", value: { value: 20 } },
+        block: [
+          { set: "x", value: 10 },
+          { set: "y", value: 20 },
           { op: "add", args: [{ get: "x" }, { get: "y" }] },
         ],
       },

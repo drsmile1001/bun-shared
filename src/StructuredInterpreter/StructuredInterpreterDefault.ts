@@ -12,7 +12,8 @@ import {
   isIfExpression,
   isLiteralExpression,
   isOperationExpression,
-  isSetVariableExpression,
+  isSetVariableByExpression,
+  isSetVariableByLiteralExpression,
 } from "./StructuredInterpreter";
 
 export class StructuredInterpreterDefault implements StructuredInterpreter {
@@ -32,11 +33,18 @@ export class StructuredInterpreterDefault implements StructuredInterpreter {
         const value = ctx?.variables?.[expr.get] ?? null;
         return ok(value);
       }
-      if (isSetVariableExpression(expr)) {
+      if (isSetVariableByLiteralExpression(expr)) {
         if (!ctx.variables) {
           ctx.variables = {};
         }
-        const result = await this.interpret(expr.value, ctx);
+        ctx.variables[expr.set] = expr.value;
+        return ok(expr.value);
+      }
+      if (isSetVariableByExpression(expr)) {
+        if (!ctx.variables) {
+          ctx.variables = {};
+        }
+        const result = await this.interpret(expr.expr, ctx);
         if (isErr(result)) {
           return result;
         }
@@ -121,8 +129,8 @@ export class StructuredInterpreterDefault implements StructuredInterpreter {
       if (isBlockExpression(expr)) {
         let result: Result<LiteralValue, string> = ok(null);
         let line = 0;
-        for (const child of expr.children) {
-          result = await this.interpret(child, ctx);
+        for (const subExpr of expr.block) {
+          result = await this.interpret(subExpr, ctx);
           if (isErr(result)) {
             return err(`在區塊中執行 ${line} 時發生錯誤: ${result.error}`);
           }

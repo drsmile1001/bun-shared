@@ -46,7 +46,11 @@ export const expressionSchema = t.Recursive((node) =>
     }),
     t.Object({
       set: t.String({ description: "變數名稱" }),
-      value: node,
+      value: literalValueSchema,
+    }),
+    t.Object({
+      set: t.String({ description: "變數名稱" }),
+      expr: node,
     }),
     t.Object({
       op: t.Union([
@@ -86,7 +90,7 @@ export const expressionSchema = t.Recursive((node) =>
       args: t.Array(node),
     }),
     t.Object({
-      children: t.Array(node),
+      block: t.Array(node),
     }),
     t.Object({
       if: node,
@@ -97,7 +101,7 @@ export const expressionSchema = t.Recursive((node) =>
 );
 
 export type Expression = typeof expressionSchema.static;
-export type LiteralExpression = Extract<Expression, { value: LiteralValue }>;
+export type LiteralExpression = { value: LiteralValue };
 export function isLiteralExpression(
   expr: Expression
 ): expr is LiteralExpression {
@@ -106,17 +110,32 @@ export function isLiteralExpression(
     (expr as LiteralExpression).value !== undefined
   );
 }
-export type GetVariableExpression = Extract<Expression, { get: string }>;
+export type GetVariableExpression = { get: string };
 export function isGetVariableExpression(
   expr: Expression
 ): expr is GetVariableExpression {
   return (expr as GetVariableExpression).get !== undefined;
 }
-export type SetVariableExpression = Extract<Expression, { set: string }>;
-export function isSetVariableExpression(
+export type SetVariableByLiteralExpression = {
+  set: string;
+  value: LiteralValue;
+};
+export function isSetVariableByLiteralExpression(
   expr: Expression
-): expr is SetVariableExpression {
-  return (expr as SetVariableExpression).set !== undefined;
+): expr is SetVariableByLiteralExpression {
+  return (
+    (expr as SetVariableByLiteralExpression).set !== undefined &&
+    (expr as SetVariableByLiteralExpression).value !== undefined
+  );
+}
+export type SetVariableByExpression = { set: string; expr: Expression };
+export function isSetVariableByExpression(
+  expr: Expression
+): expr is SetVariableByExpression {
+  return (
+    (expr as SetVariableByExpression).set !== undefined &&
+    (expr as SetVariableByExpression).expr !== undefined
+  );
 }
 export type OperationExpression = Extract<Expression, { op: string }>;
 export function isOperationExpression(
@@ -124,15 +143,19 @@ export function isOperationExpression(
 ): expr is OperationExpression {
   return (expr as OperationExpression).op !== undefined;
 }
-export type CallExpression = Extract<Expression, { call: string }>;
+export type CallExpression = { call: string; args: Expression[] };
 export function isCallExpression(expr: Expression): expr is CallExpression {
   return (expr as CallExpression).call !== undefined;
 }
-export type BlockExpression = Extract<Expression, { children: Expression[] }>;
+export type BlockExpression = { block: Expression[] };
 export function isBlockExpression(expr: Expression): expr is BlockExpression {
-  return (expr as BlockExpression).children !== undefined;
+  return (expr as BlockExpression).block !== undefined;
 }
-export type IfExpression = Extract<Expression, { if: Expression }>;
+export type IfExpression = {
+  if: Expression;
+  then: Expression;
+  else?: Expression;
+};
 export function isIfExpression(expr: Expression): expr is IfExpression {
   return (expr as IfExpression).if !== undefined;
 }
