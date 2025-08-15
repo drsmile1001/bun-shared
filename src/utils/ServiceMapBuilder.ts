@@ -1,35 +1,74 @@
 import { dispose } from "~shared/utils/Disposeable";
 
-type ServiceMap = Record<string, unknown>;
+import type { MaybePromise } from "./TypeHelper";
 
-export class ServiceMapBuilder<TRegistered extends ServiceMap = {}> {
-  private readonly registedMap: Record<string, unknown> = {};
+export type ServiceMap = Record<string, unknown>;
+export type EmptyMap = {};
+
+export class ServiceMapBuilder<
+  TRegistered extends ServiceMap = EmptyMap,
+  TServiceMap extends ServiceMap = ServiceMap,
+> {
   private readonly registeredKeys: string[] = [];
+  private readonly registed: Record<string, unknown> = {};
 
   private constructor() {}
 
-  static create(): ServiceMapBuilder {
-    return new ServiceMapBuilder();
+  get registered(): TRegistered {
+    return this.registed as TRegistered;
   }
 
-  register<TService, TName extends string>(
+  static create<
+    TServiceMap extends ServiceMap = ServiceMap,
+  >(): ServiceMapBuilder<EmptyMap, TServiceMap> {
+    return new ServiceMapBuilder<EmptyMap, TServiceMap>();
+  }
+
+  from<
+    TFromMap extends {
+      [K in keyof TRegistered]?: undefined;
+    } & {
+      [K in keyof TServiceMap]?: MaybePromise<TServiceMap[K]>;
+    },
+  >(fromMap: TFromMap): ServiceMapBuilder<TRegistered & TFromMap, TServiceMap> {
+    for (const [key, value] of Object.entries(fromMap)) {
+      this.registeredKeys.push(key);
+      this.registed[key] = value;
+    }
+    return this as ServiceMapBuilder<TRegistered & TFromMap, TServiceMap>;
+  }
+
+  register<TName extends keyof TServiceMap>(
     key: Exclude<TName, keyof TRegistered>,
-    value: (deps: TRegistered) => TService
-  ): ServiceMapBuilder<TRegistered & { [K in TName]: TService }>;
-  register<TService, TName extends string>(
+    value: (deps: TRegistered) => TServiceMap[TName]
+  ): ServiceMapBuilder<
+    TRegistered & { [K in TName]: TServiceMap[TName] },
+    TServiceMap
+  >;
+  register<TName extends keyof TServiceMap>(
     key: Exclude<TName, keyof TRegistered>,
-    value: TService
-  ): ServiceMapBuilder<TRegistered & { [K in TName]: TService }>;
+    value: (deps: TRegistered) => Promise<TServiceMap[TName]>
+  ): ServiceMapBuilder<
+    TRegistered & { [K in TName]: Promise<TServiceMap[TName]> },
+    TServiceMap
+  >;
+  register<TName extends keyof TServiceMap>(
+    key: Exclude<TName, keyof TRegistered>,
+    value: TServiceMap[TName]
+  ): ServiceMapBuilder<
+    TRegistered & { [K in TName]: TServiceMap[TName] },
+    TServiceMap
+  >;
   register(key: string, value: unknown) {
     this.registeredKeys.push(key);
     if (typeof value === "function") {
       try {
-        this.registedMap[key] = value(this.registedMap as TRegistered);
+        this.registed[key] = value(this.registed as TRegistered);
       } catch (err) {
         throw new Error(`Error executing factory for "${key}": ${String(err)}`);
       }
     } else {
-      this.registedMap[key] = value;
+      this.registed[key] = value;
     }
     return this as any;
   }
@@ -46,7 +85,7 @@ export class ServiceMapBuilder<TRegistered extends ServiceMap = {}> {
   > {
     const finalMap: Record<string, unknown> = {};
 
-    for (const [key, service] of Object.entries(this.registedMap)) {
+    for (const [key, service] of Object.entries(this.registed)) {
       finalMap[key] = await service;
     }
 
