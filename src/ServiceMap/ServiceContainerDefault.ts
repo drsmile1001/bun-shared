@@ -6,12 +6,8 @@ import {
 } from "~shared/utils/Disposeable";
 import { type Result, err, ok } from "~shared/utils/Result";
 
-import type {
-  BuildError,
-  Factory,
-  ServiceContainer,
-  ServiceMap,
-} from "./ServiceContainer";
+import type { BuildError, Factory, ServiceContainer } from "./ServiceContainer";
+import type { ServiceMap } from "./ServiceMap";
 
 type DisposableEntry = {
   value: Disposeable;
@@ -62,6 +58,14 @@ export class ServiceContainerDefault<TService extends ServiceMap>
         key: String(key),
       });
     }
+  }
+
+  toMap(): TService {
+    const map: Record<string, unknown> = {};
+    for (const [key, value] of this.services.entries()) {
+      map[String(key)] = value;
+    }
+    return map as TService;
   }
 
   // === 註冊實例 ===

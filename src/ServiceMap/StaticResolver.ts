@@ -1,4 +1,5 @@
-import type { ServiceMap, ServiceResolver } from "./ServiceContainer";
+import type { ServiceResolver } from "./ServiceContainer";
+import type { ServiceMap } from "./ServiceMap";
 
 export class StaticResolver<T extends ServiceMap>
   implements ServiceResolver<T>
@@ -7,5 +8,9 @@ export class StaticResolver<T extends ServiceMap>
 
   resolve<K extends keyof T>(key: K): T[K] {
     return this.map[key];
+  }
+
+  toMap(): T {
+    return this.map;
   }
 }

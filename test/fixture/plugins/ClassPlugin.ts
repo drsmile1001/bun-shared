@@ -1,23 +1,14 @@
 import type { Logger } from "~shared/Logger";
 import { type Plugin, definePlugin } from "~shared/PluginLoader";
-import type { ServiceResolver } from "~shared/ServiceContainer";
 import { ok } from "~shared/utils/Result";
 
-class ClassPlugin
-  implements
-    Plugin<{
-      Callback: (message: string) => void;
-    }>
-{
+import type { PluginTestServiceMap } from "./PluginTestServiceMap";
+
+class ClassPlugin implements Plugin<PluginTestServiceMap> {
   name = "class-plugin";
   callback?: (message: string) => void;
-  init(
-    logger: Logger,
-    resolver: ServiceResolver<{
-      Callback: (message: string) => void;
-    }>
-  ) {
-    this.callback = resolver.resolve("Callback");
+  init(logger: Logger, serviceMap: PluginTestServiceMap) {
+    this.callback = serviceMap.Callback;
     this.callback("Class plugin initialized");
     return ok();
   }

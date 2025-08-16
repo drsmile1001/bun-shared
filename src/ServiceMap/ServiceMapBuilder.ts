@@ -1,9 +1,7 @@
 import { dispose } from "~shared/utils/Disposeable";
+import type { MaybePromise } from "~shared/utils/TypeHelper";
 
-import type { MaybePromise } from "./TypeHelper";
-
-export type ServiceMap = Record<string, unknown>;
-export type EmptyMap = {};
+import type { EmptyMap, ServiceMap } from "./ServiceMap";
 
 export class ServiceMapBuilder<
   TRegistered extends ServiceMap = EmptyMap,

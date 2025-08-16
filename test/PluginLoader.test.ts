@@ -1,22 +1,21 @@
 import { describe, expect, test } from "bun:test";
 
 import { PluginLoader } from "~shared/PluginLoader";
-import { StaticResolver } from "~shared/ServiceContainer";
 import { buildTestLogger } from "~shared/testkit/TestLogger";
+
+import type { PluginTestServiceMap } from "./fixture/plugins/PluginTestServiceMap";
 
 describe("PluginLoader", () => {
   test("可以載入插件與釋放插件", async () => {
     const logger = buildTestLogger();
     const message: string[] = [];
-    const resolver = new StaticResolver({
+    const serviceMap = {
       Callback: (msg: string) => {
         message.push(msg);
       },
-    });
+    };
     const currentDir = import.meta.dir;
-    const manager = new PluginLoader<{
-      Callback: (message: string) => void;
-    }>(logger, resolver, {
+    const manager = new PluginLoader<PluginTestServiceMap>(logger, serviceMap, {
       pluginDir: `${currentDir}/fixture/plugins`,
     });
     await manager.load();

@@ -3,26 +3,26 @@ import { exists, readdir } from "fs/promises";
 import { join } from "path";
 
 import type { Logger } from "~shared/Logger";
-import type { ServiceMap, ServiceResolver } from "~shared/ServiceContainer";
+import type { EmptyMap, ServiceMap } from "~shared/ServiceMap";
 import { isErr, tryCatchAsync } from "~shared/utils/Result";
 
 import { type Plugin, pluginSchema } from "./Plugin";
 
-export class PluginLoader<TServiceMap extends ServiceMap> {
+export class PluginLoader<TServiceMap extends ServiceMap = EmptyMap> {
   private readonly plugins: Plugin<TServiceMap>[] = [];
   private readonly logger: Logger;
   private readonly pluginDir: string;
-  private readonly resolver: ServiceResolver<TServiceMap>;
+  private readonly serviceMap: TServiceMap;
   constructor(
     logger: Logger,
-    resolver: ServiceResolver<TServiceMap>,
+    serviceMap: TServiceMap,
     options: { pluginDir: string }
   ) {
     this.logger = logger.extend("PluginLoader", {
       emoji: "🔌",
       pluginDir: options.pluginDir,
     });
-    this.resolver = resolver;
+    this.serviceMap = serviceMap;
     this.pluginDir = options.pluginDir;
   }
 
@@ -64,7 +64,7 @@ export class PluginLoader<TServiceMap extends ServiceMap> {
         }
         fileLogger.info()`檔案 ${fileName} 有插件 ${plugin.name} 開始初始化`;
         const result = await tryCatchAsync(
-          async () => await plugin.init(this.logger, this.resolver)
+          async () => await plugin.init(this.logger, this.serviceMap)
         );
         if (isErr(result)) {
           fileLogger.error({

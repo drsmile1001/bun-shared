@@ -1,10 +1,11 @@
 import type { Result } from "~shared/utils/Result";
 import type { MaybePromise } from "~shared/utils/TypeHelper";
 
-export type ServiceMap = Record<string, unknown>;
+import type { ServiceMap } from "./ServiceMap";
 
 export interface ServiceResolver<T extends ServiceMap> {
   resolve<K extends keyof T>(key: K): T[K];
+  toMap(): T;
 }
 
 export type Factory<
