@@ -1,19 +1,20 @@
 import kleur from "kleur";
 
-import type { LogLevel, Logger, LoggerContext, TemplateLogger } from "./Logger";
+import {
+  type ErrorRecord,
+  type LogLevel,
+  type LogRecord,
+  type LogTransport,
+  type Logger,
+  type LoggerContext,
+  type TemplateLogger,
+  priority,
+} from "./Logger";
 
 type ColorPurpose = LogLevel | "stack";
 
 export class LoggerConsole implements Logger {
   readonly level: LogLevel;
-
-  static readonly priority: Record<LogLevel, number> = {
-    debug: 1,
-    info: 2,
-    warn: 3,
-    error: 4,
-    devlog: 5,
-  };
 
   static readonly tags: Record<LogLevel, string> = {
     debug: "[DEBUG]",
@@ -44,6 +45,8 @@ export class LoggerConsole implements Logger {
     return this.withColor ? LoggerConsole.colors[purpose](text) : text;
   }
 
+  private transports: LogTransport[] = [];
+
   constructor(
     level: LogLevel = "info",
     private readonly path: string[] = [],
@@ -61,7 +64,7 @@ export class LoggerConsole implements Logger {
     context: LoggerContext = {},
     overrideLevel?: LogLevel
   ): Logger {
-    return new LoggerConsole(
+    const extended = new LoggerConsole(
       overrideLevel ?? this.level,
       [...this.path, namespace],
       { ...this.context, ...context },
@@ -70,6 +73,10 @@ export class LoggerConsole implements Logger {
       this.withColor,
       this.withContext
     );
+    for (const transport of this.transports) {
+      extended.attachTransport(transport);
+    }
+    return extended;
   }
 
   append(context: LoggerContext): Logger {
@@ -154,12 +161,14 @@ export class LoggerConsole implements Logger {
       }
     }
     if (context.error) this.logErrorObjectAndStack(context.error);
+
+    this.dispatchToTransports(level, context, msg);
   }
 
   private logErrorObjectAndStack(error: any): void {
     let stack = "";
     if (error instanceof LoggerConsoleStackTracer) {
-      stack = error.stack!.split("\n").slice(3).join("\n");
+      stack = error.getNormalizedStack();
       if (error.value)
         console.error(
           this.renderColor("stack", `Error: ${JSON.stringify(error.value)}`)
@@ -213,7 +222,37 @@ export class LoggerConsole implements Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return LoggerConsole.priority[level] >= LoggerConsole.priority[this.level];
+    return priority(level) >= priority(this.level);
+  }
+
+  attachTransport(t: LogTransport): void {
+    this.transports.push(t);
+  }
+
+  listTransports(): LogTransport[] {
+    return [...this.transports];
+  }
+
+  async flushTransports(): Promise<void> {
+    await Promise.all(this.transports.map((t) => t[Symbol.asyncDispose]()));
+    this.transports = [];
+  }
+
+  private dispatchToTransports(
+    level: LogLevel,
+    ctx: LoggerContext,
+    msg: string
+  ) {
+    const rec: LogRecord = {
+      ts: new Date().valueOf(),
+      level,
+      path: this.path,
+      event: ctx.event ?? level,
+      msg,
+      ctx: stripReserved({ ...this.context, ...ctx }),
+      err: normalizeError(ctx.error),
+    };
+    for (const t of this.transports) t.write(rec);
   }
 }
 
@@ -222,10 +261,26 @@ function stripReserved(ctx: LoggerContext): Record<string, unknown> {
   return rest;
 }
 
+function normalizeError(e: unknown): ErrorRecord | undefined {
+  if (!e) return;
+  if (e instanceof LoggerConsoleStackTracer)
+    return {
+      name: "NonError",
+      message: "non-error thrown",
+      value: e,
+      stack: e.getNormalizedStack(),
+    };
+  if (e instanceof Error)
+    return { name: e.name, message: e.message, stack: e.stack };
+}
+
 class LoggerConsoleStackTracer extends Error {
   value: any;
   constructor(value?: any) {
     super();
     this.value = value;
+  }
+  getNormalizedStack(): string {
+    return (this.stack ?? "").split("\n").slice(3).join("\n");
   }
 }

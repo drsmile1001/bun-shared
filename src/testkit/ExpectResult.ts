@@ -1,9 +1,43 @@
-import { type Result, type ResultOk, isOk } from "~shared/utils/Result";
+import { expect } from "bun:test";
 
-export function expectOk<TValue, TError = unknown>(
+import {
+  type Result,
+  type ResultErr,
+  type ResultOk,
+} from "~shared/utils/Result";
+
+export function expectOk<TValue = unknown, TError = unknown>(
   result: Result<TValue, TError>
 ): asserts result is ResultOk<TValue> {
-  if (!isOk(result)) {
-    throw new Error(`Expected result to be ok, but got error: ${result.error}`);
-  }
+  expect(result).toMatchObject({
+    ok: true,
+  });
+}
+
+export function expectValue<TValue = unknown, TError = unknown>(
+  result: Result<TValue, TError>,
+  value: TValue
+): asserts result is ResultOk<TValue> {
+  expect(result).toMatchObject({
+    ok: true,
+    value,
+  });
+}
+
+export function expectError<TValue = unknown, TError = unknown>(
+  result: Result<TValue, TError>
+): asserts result is ResultErr<TError> {
+  expect(result).toMatchObject({
+    ok: false,
+  });
+}
+
+export function expectErrorValue<TValue = unknown, TError = unknown>(
+  result: Result<TValue, TError>,
+  error: TError
+): asserts result is ResultErr<TError> {
+  expect(result).toMatchObject({
+    ok: false,
+    error,
+  });
 }

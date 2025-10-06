@@ -3,12 +3,11 @@ import { describe, expect, test } from "bun:test";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { buildConfigFactoryEnv, envNumber } from "~shared/ConfigFactory";
+import { EventBusNats } from "~shared/EventBus/EventBusNats";
+import { NatsConnectionManager } from "~shared/EventBus/NatsConnectionManager";
 import { getTestConfig } from "~shared/testkit/TestConfig";
 import { withContext } from "~shared/testkit/TestContextRunner";
 import { buildTestLogger } from "~shared/testkit/TestLogger";
-
-import { EventBusNats } from "./EventBusNats";
-import { NatsConnectionManager } from "./NatsConnectionManager";
 
 type TestEventMap = {
   "demo.hello": { message: string };

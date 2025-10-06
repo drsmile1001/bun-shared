@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
+import type { ExecutionContext } from "~shared/StructuredInterpreter/StructuredInterpreter";
+import { StructuredInterpreterDefault } from "~shared/StructuredInterpreter/StructuredInterpreterDefault";
 import { expectOk } from "~shared/testkit/ExpectResult";
 import { ok } from "~shared/utils/Result";
-
-import type { ExecutionContext } from "./StructuredInterpreter";
-import { StructuredInterpreterDefault } from "./StructuredInterpreterDefault";
 
 describe("StructuredInterpreterDefault", () => {
   test("可以正確解釋字面量表達式", async () => {

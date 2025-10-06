@@ -1,16 +1,14 @@
 import { expect } from "bun:test";
 
-export async function expectToThrow<ThrowError = undefined>(
+export async function expectToThrow<ThrowError = unknown>(
   fn: () => Promise<unknown>
-) {
-  let threw = false;
-  let returnError: ThrowError | undefined;
+): Promise<ThrowError | undefined> {
+  let returnError: ThrowError | undefined = undefined;
   try {
     await fn();
   } catch (error) {
-    threw = true;
     returnError = error as ThrowError;
   }
-  expect(threw).toBe(true);
-  return returnError as ThrowError;
+  expect(returnError).toBeDefined();
+  return returnError;
 }

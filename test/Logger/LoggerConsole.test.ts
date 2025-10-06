@@ -3,14 +3,21 @@ import { describe, expect, test } from "bun:test";
 import kleur from "kleur";
 
 import { buildConfigFactoryEnv, envBoolean } from "~shared/ConfigFactory";
-
-import { LoggerConsole } from "./LoggerConsole";
+import { type LogTransport, LoggerConsole } from "~shared/Logger";
+import { DiscordWebhookTransport } from "~shared/Logger/DiscordWebhookTransport";
+import { RfsTransport } from "~shared/Logger/RfsTransport";
+import { dispose } from "~shared/utils/Disposeable";
 
 const getLoggerConsoleTestConfig = buildConfigFactoryEnv(
   t.Object({
     TEST_LOGGER_CONSOLE_TEST_OUTPUT: t.Optional(envBoolean()),
+    TEST_LOGGER_DISCORD_WEBHOOK_URL: t.Optional(t.String()),
+    TEST_SKIP_DISCORD_WEBHOOK_TEST: t.Optional(envBoolean()),
   })
 );
+
+const { TEST_SKIP_DISCORD_WEBHOOK_TEST, TEST_LOGGER_DISCORD_WEBHOOK_URL } =
+  getLoggerConsoleTestConfig();
 
 function captureConsole<T>(fn: () => T): {
   output: string;
@@ -172,4 +179,95 @@ describe("LoggerConsole", () => {
       errorOut: ["error", "錯誤B"],
     });
   });
+
+  test("logger stack 能準確提供出錯位置", () => {
+    const logger = new LoggerConsole("debug", [], {}, emojiMap);
+    function theMethod(logger: LoggerConsole) {
+      logger.error()`錯誤位置測試`;
+    }
+    const { errorOutput } = captureConsole(() => {
+      theMethod(logger);
+    });
+    const match = /at (.*) /;
+    const matches = errorOutput.match(match);
+    expect(matches).toBeTruthy();
+    const firstMatch = matches ? matches[1] : "";
+    expect(firstMatch).toBe("theMethod");
+  });
+
+  test("傳輸給 Transport 的 stack 是準確的位置", () => {
+    const logger = new LoggerConsole("debug", [], {}, emojiMap);
+    function theMethod(logger: LoggerConsole) {
+      logger.error()`錯誤位置測試`;
+    }
+    let stack = "";
+    const transport: LogTransport = {
+      write(record) {
+        stack = record.err?.stack ?? "";
+      },
+      async [Symbol.asyncDispose]() {},
+    };
+    logger.attachTransport(transport);
+    captureConsole(() => {
+      theMethod(logger);
+    });
+    const match = /at (.*) /;
+    const matches = stack.match(match);
+    expect(matches).toBeTruthy();
+    const firstMatch = matches ? matches[1] : "";
+    expect(firstMatch).toBe("theMethod");
+  });
+
+  test("使用 RfsTransport", async () => {
+    const logger = new LoggerConsole("debug", [], {}, emojiMap);
+
+    const transport = new RfsTransport({
+      filename: "test.log",
+      rfs: {
+        path: "logs",
+      },
+    });
+    logger.attachTransport(transport);
+    const { output } = captureConsole(() => {
+      logger.info({ event: "start", emoji: "🌟", userId: "abc" }, "啟動");
+      logger.error({ error: new Error("爆炸了"), event: "error" }, "錯誤");
+    });
+    expect(output).toContain("🌟");
+    expect(output).toContain("start: 啟動");
+    expect(output).toContain('"userId":"abc"');
+    await dispose(transport);
+    const fs = Bun.file("logs/test.log");
+    const text = await fs.text();
+    expect(text).toContain('"level":"info"');
+    expect(text).toContain('"event":"start"');
+    expect(text).toContain('"msg":"啟動"');
+    expect(text).toContain('"userId":"abc"');
+    expect(text).toContain('"level":"error"');
+    expect(text).toContain('"event":"error"');
+    expect(text).toContain('"msg":"錯誤"');
+    expect(text).toContain('"name":"Error"');
+    expect(text).toContain('"message":"爆炸了"');
+    await fs.delete();
+  });
+
+  test.skipIf(TEST_SKIP_DISCORD_WEBHOOK_TEST ?? true)(
+    "使用 DiscordWebhookTransport",
+    async () => {
+      if (!TEST_LOGGER_DISCORD_WEBHOOK_URL) {
+        throw new Error("TEST_LOGGER_DISCORD_WEBHOOK_URL not set");
+      }
+      const logger = new LoggerConsole("debug", [], {}, emojiMap);
+
+      const transport = new DiscordWebhookTransport({
+        webhookUrl: TEST_LOGGER_DISCORD_WEBHOOK_URL,
+      });
+      logger.attachTransport(transport);
+      logger.info({ event: "start", emoji: "🌟", userId: "abc" }, "啟動");
+      logger.error(
+        { error: new Error("爆炸了"), event: "error", aa: "AA", bb: 123 },
+        "錯誤"
+      );
+      await dispose(transport);
+    }
+  );
 });

@@ -1,9 +1,9 @@
 import { Value } from "@sinclair/typebox/value";
 
-import { type LogLevel, type Logger, logLevelEnum } from "./Logger";
+import { type LogLevel, logLevelEnum } from "./Logger";
 import { LoggerConsole } from "./LoggerConsole";
 
-export function createDefaultLoggerFromEnv(): Logger {
+export function createDefaultLoggerFromEnv() {
   let LOG_LEVEL = process.env.LOG_LEVEL;
   let LOG_WITH_CONTEXT = process.env.LOG_WITH_CONTEXT;
 
