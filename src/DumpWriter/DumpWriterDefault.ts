@@ -10,19 +10,29 @@ export class DumpWriterDefault implements DumpWriter {
   private readonly logger: Logger;
   private dir: string;
   constructor(logger: Logger, dir = "dist/reports") {
-    this.logger = logger.extend("ReporterDefault");
+    this.logger = logger.extend("DumpWriterDefault");
     this.dir = dir;
   }
 
-  async dump<TContent>(subject: string, content: TContent): Promise<void> {
+  printableContent(content: unknown): string {
     const yamlContent = stringify(content, {
       indent: 2,
     });
+    const lines = yamlContent.split("\n");
+    if (lines.length > 30) {
+      const firstLines = lines.slice(0, 30).join("\n");
+      return `${firstLines}\n... (共 ${lines.length} 行)`;
+    }
+    return yamlContent;
+  }
+
+  async dump<TContent>(subject: string, content: TContent): Promise<void> {
+    const trimmedContent = this.printableContent(content);
     this.logger.info({
-      event: "report",
-      emoji: "📢",
+      event: "dump",
+      emoji: "📝",
       subject,
-    })`報告: ${subject}\n${yamlContent}`;
+    })`${subject}\n${trimmedContent}`;
     const timestamp = format(new Date(), "yyyyMMddHHmmssSSS");
     const path = `${this.dir}/${timestamp}-${subject}.yaml`;
     const yamlFile = new YamlFile<TContent>({
@@ -33,12 +43,10 @@ export class DumpWriterDefault implements DumpWriter {
     await yamlFile.write(content);
     const currentPath = process.cwd();
     const absolutePath = `${currentPath}/${path}`;
-    this.logger.info(
-      {
-        emoji: "📂",
-      },
-      `報告已儲存至`
-    );
-    console.log(absolutePath);
+    const fileUrl = `file://${absolutePath}`;
+    this.logger.info({
+      event: "saved",
+      emoji: "💾",
+    })`已保存至 ${fileUrl}`;
   }
 }
