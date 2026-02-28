@@ -89,6 +89,7 @@ export interface LogRecord {
   level: LogLevel;
   path: string[];
   event?: string;
+  emoji?: string;
   msg: string;
   ctx?: Record<string, unknown>;
   err?: ErrorRecord;
