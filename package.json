@@ -1,5 +1,5 @@
 {
-  "name": "@drsmile1001/lib",
+  "name": "@drsmile1001/drsmile-bun-kit",
   "workspaces": [
     "packages/*"
   ],

@@ -1,6 +1,12 @@
-# @drsmile/lib
+# drsmile-bun-kit
 
-Bun + TypeScript 的共享函式庫 monorepo（workspace: `packages/*`）。
+我慣用的 Bun + TypeScript 開發流程共用函式庫 monorepo（workspace: `packages/*`）。
+
+## 專案定位
+
+- 這個 repo 提供 `@drsmile1001/*` 系列套件
+- 目標是支援個人慣用的 Bun 開發環境與工作流
+- 採 source-first 發佈：直接發佈 `.ts`，不先編譯成 dist
 
 ## 開發環境
 
@@ -79,6 +85,13 @@ OTP / MFA 實務：
 - 所有套件位於 `packages/*`
 - 每個 package 以 `index.ts` + `src/*` 為主
 - 以原始 TypeScript 發佈（不預編譯打包）
+
+## 套件分層
+
+- 核心基礎：`utils`、`logger`、`config-factory`
+- 開發輔助：`testkit`、`devkit-cli`
+- 領域模組：`event-bus`、`service-map`、`plugin-loader`、`scheduler-service`
+- 第三方封裝：`utils-ky`、`utils-typebox`、`utils-yaml`
 
 ## Agent 指南
 
