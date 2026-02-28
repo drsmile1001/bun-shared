@@ -1,6 +1,6 @@
 {
   "name": "@drsmile1001/logger",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dependencies": {
     "kleur": "^4.1.5",
     "rotating-file-stream": "^3.2.7"
