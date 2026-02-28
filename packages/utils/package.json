@@ -1,0 +1,22 @@
+{
+  "name": "@drsmile1001/utils",
+  "version": "0.1.0",
+  "files": [
+    "index.ts",
+    "src"
+  ],
+  "exports": {
+    ".": "./index.ts",
+    "./Result": "./src/Result.ts",
+    "./Disposable": "./src/Disposable.ts",
+    "./AsyncLock": "./src/AsyncLock.ts",
+    "./TypeHelper": "./src/TypeHelper.ts"
+  },
+  "types": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "typecheck": "bunx tsc -p tsconfig.json --noEmit"
+  }
+}

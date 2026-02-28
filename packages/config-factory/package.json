@@ -1,0 +1,21 @@
+{
+  "name": "@drsmile1001/config-factory",
+  "version": "0.1.0",
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.47"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "files": [
+    "index.ts",
+    "src"
+  ],
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "bunx tsc -p tsconfig.json --noEmit"
+  }
+}

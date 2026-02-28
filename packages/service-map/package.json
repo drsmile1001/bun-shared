@@ -1,0 +1,22 @@
+{
+  "name": "@drsmile1001/service-map",
+  "version": "0.1.0",
+  "dependencies": {
+    "@drsmile1001/logger": "^0.1.0",
+    "@drsmile1001/utils": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "files": [
+    "index.ts",
+    "src"
+  ],
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "bunx tsc -p tsconfig.json --noEmit"
+  }
+}

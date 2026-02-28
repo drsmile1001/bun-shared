@@ -1,29 +1,60 @@
-# 🧰 Bun Shared Modules
+# @drsmile/lib
 
-本專案為 **Bun 專案共用模組庫**，透過 `git subtree` 的方式整合至多個專案中
+Bun + TypeScript 的共享函式庫 monorepo（workspace: `packages/*`）。
 
-## 🌱 使用方式（Subtree）
+## 開發環境
 
-### 1. 在目標 repo 中拉入本 repo
+- Bun（建議使用最新穩定版）
+- TypeScript strict mode
+
+## 安裝
 
 ```bash
-git subtree add --prefix=shared https://github.com/drsmile1001/bun-shared.git main --squash
+bun install
 ```
 
-### 2. 更新共用模組（pull）
+## 常用命令
 
 ```bash
-git subtree pull --prefix=shared https://github.com/drsmile1001/bun-shared.git main --squash
-```
+# 全 repo 格式化
+bun run format
 
-## 🧪 測試
+# 全 repo 格式檢查
+bun run format:check
 
-本 repo 預設以 [`bun`](https://bun.sh/) 作為 runtime，建議使用：
+# 全 workspace 型別檢查
+bun run typecheck
 
-```bash
+# 全 repo 測試
 bun test
+
+# 指定 package 型別檢查
+bun run --filter '@drsmile1001/service-map' typecheck
+
+# 單一 package 測試
+bun test packages/service-map/test
+
+# 單一測試檔
+bun test packages/service-map/test/ServiceMapBuilder.test.ts
+
+# 升級第三方依賴
+bun update
 ```
 
-## 📝 License
+## 開發流程
 
-MIT
+- 本 monorepo 的格式化由 root 統一管理
+- 修改 `packages/*` 任一檔案後，請回 root 執行：
+  - `bun run format`
+  - `bun run typecheck`
+  - `bun test`（視改動範圍可先跑關鍵測試）
+
+## 套件結構
+
+- 所有套件位於 `packages/*`
+- 每個 package 以 `index.ts` + `src/*` 為主
+- 以原始 TypeScript 發佈（不預編譯打包）
+
+## Agent 指南
+
+請參考 `AGENTS.md` 取得完整開發規範、命令與驗證流程。
