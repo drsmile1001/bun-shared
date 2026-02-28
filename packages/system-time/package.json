@@ -14,5 +14,6 @@
   },
   "scripts": {
     "typecheck": "bunx tsc -p tsconfig.json --noEmit"
-  }
+  },
+  "license": "MIT"
 }

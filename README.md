@@ -96,3 +96,7 @@ OTP / MFA 實務：
 ## Agent 指南
 
 請參考 `AGENTS.md` 取得完整開發規範、命令與驗證流程。
+
+## License
+
+MIT
