@@ -1,9 +1,9 @@
 {
   "name": "@drsmile1001/dump-writer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
-    "@drsmile1001/logger": "^0.1.0",
-    "@drsmile1001/utils-yaml": "^0.1.0",
+    "@drsmile1001/logger": "^1.0.0",
+    "@drsmile1001/utils-yaml": "^1.0.0",
     "date-fns": "^4.1.0",
     "yaml": "^2.8.1"
   },

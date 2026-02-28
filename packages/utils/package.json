@@ -1,6 +1,6 @@
 {
   "name": "@drsmile1001/utils",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "files": [
     "index.ts",
     "src"

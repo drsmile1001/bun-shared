@@ -1,8 +1,8 @@
 {
   "name": "@drsmile1001/devkit-cli",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
-    "@drsmile1001/logger": "^0.1.0",
+    "@drsmile1001/logger": "^1.0.0",
     "cac": "^6.7.14",
     "kleur": "^4.1.5"
   },

@@ -1,13 +1,13 @@
 {
   "name": "@drsmile1001/logger",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
     "kleur": "^4.1.5",
     "rotating-file-stream": "^3.2.7"
   },
   "devDependencies": {
-    "@drsmile1001/config-factory": "^0.1.0",
-    "@drsmile1001/utils": "^0.1.0",
+    "@drsmile1001/config-factory": "^1.0.0",
+    "@drsmile1001/utils": "^1.0.0",
     "@sinclair/typebox": "^0.34.47",
     "@types/bun": "latest"
   },

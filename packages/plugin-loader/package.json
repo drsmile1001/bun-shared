@@ -1,14 +1,14 @@
 {
   "name": "@drsmile1001/plugin-loader",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "dependencies": {
-    "@drsmile1001/logger": "^0.1.0",
-    "@drsmile1001/service-map": "^0.1.0",
-    "@drsmile1001/utils": "^0.1.0",
+    "@drsmile1001/logger": "^1.0.0",
+    "@drsmile1001/service-map": "^1.0.0",
+    "@drsmile1001/utils": "^1.0.0",
     "@sinclair/typebox": "^0.34.47"
   },
   "devDependencies": {
-    "@drsmile1001/testkit": "^0.1.1",
+    "@drsmile1001/testkit": "^1.0.0",
     "@types/bun": "latest"
   },
   "files": [
