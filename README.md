@@ -49,6 +49,31 @@ bun update
   - `bun run typecheck`
   - `bun test`（視改動範圍可先跑關鍵測試）
 
+## 手動發佈流程
+
+目前採用手動逐包發佈（不依賴 CI 自動 publish）。
+
+- 發佈前，先在 root 執行：
+  - `bun run format:check`
+  - `bun run typecheck`
+  - `bun test`
+- 每個 package 發佈模板：
+  - `cd packages/<package-dir>`
+  - `npm pack --dry-run`
+  - `npm publish --access public`
+  - `npm view @drsmile1001/<package-name> version`
+
+建議發佈順序（依內部相依）：
+
+- 第一批：`utils`、`config-factory`、`logger`、`system-time`、`utils-ky`、`utils-typebox`
+- 第二批：`app-info`、`utils-yaml`、`event-bus`、`scheduler-service`、`service-map`、`structured-interpreter`、`testkit`、`devkit-cli`
+- 第三批：`dump-writer`、`event-bus-nats`、`plugin-loader`
+
+OTP / MFA 實務：
+
+- 可先使用同一組 OTP 連續嘗試。
+- 若遇到 `EOTP`，更新 OTP 後重試當前 package 即可。
+
 ## 套件結構
 
 - 所有套件位於 `packages/*`

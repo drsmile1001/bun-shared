@@ -93,6 +93,35 @@
 4. `bun test`
 5. 再進行 commit
 
+## 手動發佈流程
+
+目前此 repo 採手動逐包發佈，不依賴 CI 自動 publish。
+
+發佈前先在 root 執行：
+
+1. `bun run format:check`
+2. `bun run typecheck`
+3. `bun test`
+
+每個 package 發佈流程：
+
+1. `cd packages/<package-dir>`
+2. `npm pack --dry-run`
+3. `npm publish --access public`
+4. `npm view @drsmile1001/<package-name> version`
+
+建議發佈順序（依內部相依）：
+
+- 第一批：`utils`、`config-factory`、`logger`、`system-time`、`utils-ky`、`utils-typebox`
+- 第二批：`app-info`、`utils-yaml`、`event-bus`、`scheduler-service`、`service-map`、`structured-interpreter`、`testkit`、`devkit-cli`
+- 第三批：`dump-writer`、`event-bus-nats`、`plugin-loader`
+
+OTP / MFA 注意事項：
+
+- 可先嘗試同一組 OTP 連續發佈。
+- 若遇到 `EOTP`，向使用者索取新 OTP，重試當前 package。
+- 若遇到 `E403`（版本已存在），停止並改版號後再發佈。
+
 ## 程式碼風格
 
 ## 匯入與模組
