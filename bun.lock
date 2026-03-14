@@ -7,6 +7,7 @@
       "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^5.2.2",
         "prettier": "^3.6.2",
+        "typescript": "^5.9.3",
       },
     },
     "packages/app-info": {
@@ -53,6 +54,19 @@
       },
       "devDependencies": {
         "@types/bun": "latest",
+      },
+    },
+    "packages/entity-store": {
+      "name": "@drsmile1001/entity-store",
+      "version": "1.0.0",
+      "dependencies": {
+        "@drsmile1001/logger": "^1.0.0",
+        "@drsmile1001/utils": "^1.0.0",
+        "@sinclair/typebox": "^0.34.48",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "ulid": "^3.0.2",
       },
     },
     "packages/event-bus": {
@@ -241,6 +255,8 @@
 
     "@drsmile1001/dump-writer": ["@drsmile1001/dump-writer@workspace:packages/dump-writer"],
 
+    "@drsmile1001/entity-store": ["@drsmile1001/entity-store@workspace:packages/entity-store"],
+
     "@drsmile1001/event-bus": ["@drsmile1001/event-bus@workspace:packages/event-bus"],
 
     "@drsmile1001/event-bus-nats": ["@drsmile1001/event-bus-nats@workspace:packages/event-bus-nats"],
@@ -327,6 +343,10 @@
 
     "tweetnacl": ["tweetnacl@1.0.3", "", {}, "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw=="],
 
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "ulid": ["ulid@3.0.2", "", { "bin": { "ulid": "dist/cli.js" } }, "sha512-yu26mwteFYzBAot7KVMqFGCVpsF6g8wXfJzQUHvu1no3+rRRSFcSV2nKeYvNPLD2J4b08jYBDhHUjeH0ygIl9w=="],
+
     "undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
 
     "yaml": ["yaml@2.8.2", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-mplynKqc1C2hTVYxd0PU2xQAc22TI1vShAYGksCCfxbn/dFwnHTNi1bvYsBTkhdUNtGIf5xNOg938rrSSYvS9A=="],
@@ -334,6 +354,10 @@
     "@drsmile1001/devkit-cli/@drsmile1001/logger": ["@drsmile1001/logger@1.0.0", "", { "dependencies": { "kleur": "^4.1.5", "rotating-file-stream": "^3.2.7" } }, "sha512-tCF0uCtHwesP4V5bQllEMHSaxZ3MJTzJyW4RAOsrtKHX28QwKJRgqG6yzcCZea5A6uDjKKprV4AV6cqzqxVqvg=="],
 
     "@drsmile1001/dump-writer/@drsmile1001/logger": ["@drsmile1001/logger@1.0.0", "", { "dependencies": { "kleur": "^4.1.5", "rotating-file-stream": "^3.2.7" } }, "sha512-tCF0uCtHwesP4V5bQllEMHSaxZ3MJTzJyW4RAOsrtKHX28QwKJRgqG6yzcCZea5A6uDjKKprV4AV6cqzqxVqvg=="],
+
+    "@drsmile1001/entity-store/@drsmile1001/logger": ["@drsmile1001/logger@1.0.0", "", { "dependencies": { "kleur": "^4.1.5", "rotating-file-stream": "^3.2.7" } }, "sha512-tCF0uCtHwesP4V5bQllEMHSaxZ3MJTzJyW4RAOsrtKHX28QwKJRgqG6yzcCZea5A6uDjKKprV4AV6cqzqxVqvg=="],
+
+    "@drsmile1001/entity-store/@sinclair/typebox": ["@sinclair/typebox@0.34.48", "", {}, "sha512-kKJTNuK3AQOrgjjotVxMrCn1sUJwM76wMszfq1kdU4uYVJjvEWuFQ6HgvLt4Xz3fSmZlTOxJ/Ie13KnIcWQXFA=="],
 
     "@drsmile1001/event-bus-nats/@drsmile1001/logger": ["@drsmile1001/logger@1.0.0", "", { "dependencies": { "kleur": "^4.1.5", "rotating-file-stream": "^3.2.7" } }, "sha512-tCF0uCtHwesP4V5bQllEMHSaxZ3MJTzJyW4RAOsrtKHX28QwKJRgqG6yzcCZea5A6uDjKKprV4AV6cqzqxVqvg=="],
 
